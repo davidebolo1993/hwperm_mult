@@ -36,7 +36,7 @@ void usage(std::ostream& os) {
   os << "Usage: hwperm_mult --input <file> [options]\n"
         "       cat file.tsv | hwperm_mult_fast_cli [options]\n\n"
         "Options:\n"
-        "  --input <path>       File with 2 lines (riga1 and riga2).\n"
+        "  --input <path>       File with 2 lines (line1 and line2).\n"
         "  --nperm <int>        Number of permutations (default: 20000).\n"
         "  --eps <double>       Near-equality tolerance (default: 1e-10).\n"
         "  --sep <token>        Separator: tab|space|comma|semicolon|<char> (default: tab).\n"
@@ -201,23 +201,23 @@ struct TriangularData {
   std::vector<std::vector<int>> matrix;
 };
 
-TriangularData alleles_to_triangular(const std::vector<std::string>& riga1,
-                                     const std::vector<std::string>& riga2) {
-  if (riga1.size() != riga2.size()) {
-    fail("riga1 and riga2 must have equal length.");
+TriangularData alleles_to_triangular(const std::vector<std::string>& line1,
+                                     const std::vector<std::string>& line2) {
+  if (line1.size() != line2.size()) {
+    fail("line1 and line2 must have equal length.");
   }
 
   std::vector<std::pair<std::string, std::string>> pairs;
-  pairs.reserve(riga1.size());
+  pairs.reserve(line1.size());
   std::vector<std::string> all_labels;
-  all_labels.reserve(riga1.size() * 2);
+  all_labels.reserve(line1.size() * 2);
 
-  for (std::size_t i = 0; i < riga1.size(); ++i) {
-    if (is_missing_token(riga1[i]) || is_missing_token(riga2[i])) {
+  for (std::size_t i = 0; i < line1.size(); ++i) {
+    if (is_missing_token(line1[i]) || is_missing_token(line2[i])) {
       continue;
     }
-    const std::string a1 = "A" + trim(riga1[i]);
-    const std::string a2 = "A" + trim(riga2[i]);
+    const std::string a1 = "A" + trim(line1[i]);
+    const std::string a2 = "A" + trim(line2[i]);
     pairs.emplace_back(a1, a2);
     all_labels.push_back(a1);
     all_labels.push_back(a2);
@@ -380,7 +380,7 @@ std::pair<std::string, std::string> read_two_lines(const std::string& path) {
   std::string line1;
   std::string line2;
   if (!std::getline(*in, line1) || !std::getline(*in, line2)) {
-    fail("Expected at least 2 lines (riga1 then riga2).");
+    fail("Expected at least 2 lines (line1 then line2).");
   }
   if (!line1.empty() && line1.back() == '\r') {
     line1.pop_back();
@@ -397,10 +397,10 @@ int main(int argc, char** argv) {
   try {
     const Options opt = parse_options(argc, argv);
     const auto lines = read_two_lines(opt.input_path);
-    const std::vector<std::string> riga1 = split_line(lines.first, opt.sep);
-    const std::vector<std::string> riga2 = split_line(lines.second, opt.sep);
+    const std::vector<std::string> line1 = split_line(lines.first, opt.sep);
+    const std::vector<std::string> line2 = split_line(lines.second, opt.sep);
 
-    TriangularData tri = alleles_to_triangular(riga1, riga2);
+    TriangularData tri = alleles_to_triangular(line1, line2);
 
     std::mt19937_64 rng;
     if (opt.seed_given) {
